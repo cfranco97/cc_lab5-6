@@ -66,7 +66,7 @@ app.post('/users', async (req, res) => {
     const { username, picture_filename } = req.body;
     try {
         const result = await pool.query(
-            'INSERT INTO users (username, picture_filename) VALUES ($1, $2) RETURNING *',
+            'INSERT INTO users (username, picture_filename) VALUES ($1, $2) RETURNING !*',
             [username, picture_filename]
         );
         res.json(result.rows[0]);
