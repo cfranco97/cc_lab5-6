@@ -1,0 +1,42 @@
+services:
+  proxy-manager:
+    image: 'jc21/nginx-proxy-manager:latest'
+    ports:
+      - '80:80'
+      - '443:443'
+      - '81:81'
+    volumes:
+      - ./data/npm:/data
+      - ./data/letsencrypt:/etc/letsencrypt
+  frontend:
+    build: ./frontend
+  api:
+    build: ./api
+    environment: # we can change these variables later in case we want to access another database (can be external or internal)
+      - DB_USER=admin
+      - DB_PASSWORD=password
+      - DB_NAME=users_db
+      - DB_HOST=postgres-db # match the postgres service name
+    depends_on:
+      - postgres-db
+  postgres-db:
+    image: 'postgres:15-alpine'
+    environment:
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=users_db
+    #env_file:
+    #  - .env.database
+    volumes:
+      - db-data:/var/lib/postgresql/data
+  minio:
+    image: minio/minio:RELEASE.2025-01-20T14-49-07Z
+    command: server /data --console-address ":9001"
+    environment: # should secure it inside its own env file
+      - MINIO_ROOT_USER=admin
+      - MINIO_ROOT_PASSWORD=password
+    volumes:
+      - ./minio-data:/data
+volumes:
+  db-data:
+    
